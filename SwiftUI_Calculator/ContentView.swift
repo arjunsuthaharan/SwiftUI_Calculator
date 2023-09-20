@@ -6,14 +6,17 @@ import SwiftUI
 struct ContentView: View {
     @State var number : String = "0"
     @State var operand : NSInteger = 0
-    @State var resultant : Double = 0.0
+    @State var resultant : Double? = nil
     @State var firstNum : NSInteger = 0
     @State var secondNum : NSInteger = 0
+    @State var multiEqualPress : Bool = false
     
-    let PLUS = 0
-    let MINUS = 1
-    let MULTI = 2
-    let DIV = 3
+    let PLUS = 1
+    let MINUS = 2
+    let MULTI = 3
+    let DIV = 4
+    
+    @State private var showingAlert = false
     
     var body: some View {
         
@@ -101,8 +104,12 @@ struct ContentView: View {
                 }.buttonStyle(CalculatorButtonStyle())
                 
                 Button("="){
-                    
+                    self.calculateValue()
                 }.buttonStyle(CalculatorButtonStyle())
+                    .alert(isPresented: $showingAlert){
+                        
+                        Alert(title: Text("Error"), message: Text("Divison by 0 error"), dismissButton: .default(Text("OK")))
+                    }
                 
                 Button("%"){
                     self.operand = self.DIV
@@ -126,14 +133,53 @@ struct ContentView: View {
     }
     
     func saveFirstNum(){
-        firstNum = Int(number)!
+        multiEqualPress = false
+        if(resultant == nil){
+            firstNum = Int(number)!
+        }
         number = "0"
     }
     
     func clearNumValue(){
         number = "0"
+        firstNum = 0
+        secondNum = 0
+        resultant = nil
+        operand = 0
     }
     
+    func calculateValue(){
+        if(self.operand != 0){
+            if(!multiEqualPress){
+                secondNum = Int(number)!
+            }
+            
+            if(operand == PLUS){
+                resultant = Double(firstNum + secondNum)
+            }
+            if(operand == MINUS){
+                resultant = Double(firstNum - secondNum)
+            }
+            if(operand == MULTI){
+                resultant = Double(firstNum * secondNum)
+            }
+            if(operand == DIV){
+                if(secondNum == 0){
+                    showingAlert = true
+                    clearNumValue()
+                    resultant = 0
+                }
+                else{
+                    resultant = Double(firstNum) / Double(secondNum)
+                }
+                
+            }
+            number = String(resultant!)
+            firstNum = Int(resultant!)
+            multiEqualPress = true
+        }
+        
+    }
 }
 
 struct CalculatorButtonStyle: ButtonStyle{
